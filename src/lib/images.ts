@@ -58,6 +58,7 @@ export async function fileToImageItem(
     addedAt: Date.now(),
     rotation: 0,
     origin,
+    annotations: [],
   };
 }
 

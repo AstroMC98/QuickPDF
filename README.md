@@ -65,6 +65,28 @@ dragging needs 5px of movement, so the three gestures never collide. With the
 viewer open, Esc closes it and leaves your selection intact; a second Esc clears
 the selection.
 
+### Annotating a page
+
+The same full-screen view is the editor. Pick a tool and draw straight onto the
+page:
+
+| Tool | Key | What it does |
+| --- | --- | --- |
+| Select | `V` | click a mark to select, drag to move, corner handle resizes, `Del` removes |
+| Pen | `P` | freehand ink |
+| Text | `T` | click, type, Enter |
+| Rectangle / Ellipse | `R` / `O` | drag out a box; optional fill |
+| Arrow | `A` | drag from tail to head |
+| Signature or image | `S` | drag a box, choose a file — it is fitted to the box keeping its proportions |
+
+Colour, stroke width and text size are on the toolbar; `Ctrl+Z` undoes. Pages
+carrying marks show a count badge on their thumbnail.
+
+Marks are **vector, not painted onto the pixels**. They export as real PDF
+content: shapes become paths, and text becomes selectable, searchable text in
+Helvetica. Nothing is baked into the image, so a mark can be moved or deleted
+later and the original scan is never altered.
+
 ### Rotating
 
 The ↻ button on a thumbnail turns that page 90° clockwise; click again for 180°
@@ -313,6 +335,16 @@ A few decisions worth knowing about if you extend this:
   pool and can split a remainder evenly between open-ended groups; the
   incremental one never disturbs pages already placed, so an open-ended group
   simply keeps everything from the point it is reached onwards.
+- **Annotations are stored in source-image pixels**, the same space as an
+  `<svg viewBox="0 0 w h">` laid over the page. Display then needs no maths:
+  image and marks share one wrapper carrying the rotation and zoom. Pointer
+  input maps back through the SVG's own `getScreenCTM().inverse()`, which
+  already folds in that transform — so rotating a page leaves every stored
+  coordinate untouched.
+- **The PDF renderer walks the same transform pdf-lib applies to the image**:
+  normalise, flip to PDF's y-up, scale to the drawn size, rotate about the
+  anchor, translate. Stroke widths and glyph sizes take the plain page-to-image
+  scale, since they are lengths rather than points.
 - **Metadata repeats rather than references.** Every per-document sidecar
   carries the full batch header. Duplication is the point: the files get
   separated, and a sidecar that only said "document 2 of 4" would be useless on
@@ -404,6 +436,18 @@ Output:
 - zip delivery produces a valid archive under a user-typed name, with tokens
   expanded and illegal characters stripped (`March: Batch {n} docs {date}` ->
   `March Batch 2 docs 2026-08-23.zip`)
+
+Annotation editing:
+
+- all six tools draw correctly, with the layer's `viewBox` matching the source
+  image exactly (`0 0 600 800` for a 600×800 page)
+- rotating a page leaves stored coordinates unchanged — the shared wrapper does
+  the work, so marks stay put on the page
+- exported PDF content streams contain real vector operators: 9 stroke ops for
+  a rectangle + ellipse + arrow + 4-segment ink stroke, 4 bezier curves for the
+  ellipse, and zero on an un-annotated page
+- text exports as searchable text, not pixels: `/Helvetica 36 Tf` with the
+  string `<415050524F56454420323320417567>` = "APPROVED 23 Aug"
 
 Metadata sidecars:
 

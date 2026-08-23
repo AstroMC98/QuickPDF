@@ -1,3 +1,5 @@
+import type { Annotation } from "./annotations";
+
 export type PageSizeKey = "auto" | "a4" | "letter" | "legal" | "a3" | "a5";
 export type Orientation = "auto" | "portrait" | "landscape";
 export type FitMode = "contain" | "cover" | "fill";
@@ -56,6 +58,8 @@ export interface ImageItem {
   /** Clockwise degrees, matching CSS: 0, 90, 180 or 270. */
   rotation: number;
   origin: ImageOrigin;
+  /** Vector marks laid over the page, in source-image pixel coordinates. */
+  annotations: Annotation[];
 }
 
 /** One output PDF: a name plus an ordered list of image ids. */

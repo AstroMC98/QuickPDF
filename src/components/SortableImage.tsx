@@ -3,7 +3,7 @@
 import { useRef } from "react";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { IconCheck, IconRotate, IconScissors, IconTrash } from "./Icons";
+import { IconCheck, IconPen, IconRotate, IconScissors, IconTrash } from "./Icons";
 import { formatBytes } from "@/lib/images";
 import type { ImageItem } from "@/lib/types";
 
@@ -82,6 +82,15 @@ Click to enlarge`}
             }`,
           }}
         />
+        {image.annotations.length > 0 && (
+          <span
+            className="absolute bottom-1 right-1 flex items-center gap-0.5 rounded bg-indigo-600 px-1 py-0.5 text-[9px] font-semibold text-white"
+            title={`${image.annotations.length} annotation${image.annotations.length === 1 ? "" : "s"}`}
+          >
+            <IconPen className="h-2.5 w-2.5" />
+            {image.annotations.length}
+          </span>
+        )}
         {pageLabel && (
           <span className="absolute bottom-1 left-1 rounded bg-black/70 px-1.5 py-0.5 text-[10px] font-semibold tabular-nums text-white">
             {pageLabel}

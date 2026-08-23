@@ -27,7 +27,7 @@ import {
 } from "@dnd-kit/sortable";
 
 import DocumentColumn from "@/components/DocumentColumn";
-import ImagePreview from "@/components/ImagePreview";
+import PageEditor from "@/components/PageEditor";
 import OutputPanel from "@/components/OutputPanel";
 import ScanPanel from "@/components/ScanPanel";
 import SelectionBar from "@/components/SelectionBar";
@@ -38,6 +38,7 @@ import UploadZone from "@/components/UploadZone";
 import { IconPlus } from "@/components/Icons";
 
 import { downloadBlob, downloadBytes, toArrayBuffer } from "@/lib/download";
+import type { Annotation } from "@/lib/annotations";
 import { fileToImageItem, makeId } from "@/lib/images";
 import {
   buildBatchMetadata,
@@ -204,6 +205,9 @@ export default function Home() {
         return;
       }
       if (!previewId) return;
+      const target = e.target as HTMLElement | null;
+      // The editor has its own inputs; arrows belong to the caret there.
+      if (target && /^(INPUT|TEXTAREA)$/.test(target.tagName)) return;
       if (e.key === "ArrowLeft") {
         e.preventDefault();
         stepPreview(-1);
@@ -397,6 +401,14 @@ export default function Home() {
   }, []);
 
   const rotateOne = useCallback((imageId: string) => rotateImages([imageId]), [rotateImages]);
+
+  const setAnnotations = useCallback((imageId: string, annotations: Annotation[]) => {
+    setImages((prev) => {
+      const image = prev[imageId];
+      if (!image) return prev;
+      return { ...prev, [imageId]: { ...image, annotations } };
+    });
+  }, []);
   const rotateSelection = useCallback(() => rotateImages(selection), [rotateImages, selection]);
 
   const clearAll = useCallback(() => {
@@ -1123,7 +1135,7 @@ export default function Home() {
       </div>
 
       {previewId && images[previewId] && (
-        <ImagePreview
+        <PageEditor
           image={images[previewId]}
           position={order.indexOf(previewId) + 1}
           total={order.length}
@@ -1131,6 +1143,7 @@ export default function Home() {
           onPrev={() => stepPreview(-1)}
           onNext={() => stepPreview(1)}
           onRotate={rotateOne}
+          onAnnotationsChange={setAnnotations}
         />
       )}
 

@@ -23,6 +23,8 @@ export interface PageMetadata {
   bytes: number;
   type: string;
   origin: ImageItem["origin"];
+  /** Present only when the page carries marks. Stamp image data is omitted. */
+  annotations?: { count: number; kinds: string[] };
 }
 
 export interface DocumentMetadata {
@@ -95,6 +97,14 @@ export function describeDocument(
       bytes: image.bytesLength,
       type: image.mime,
       origin: image.origin,
+      ...(image.annotations?.length
+        ? {
+            annotations: {
+              count: image.annotations.length,
+              kinds: [...new Set(image.annotations.map((a) => a.kind))].sort(),
+            },
+          }
+        : {}),
     }));
 
   return {

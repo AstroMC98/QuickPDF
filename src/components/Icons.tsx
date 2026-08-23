@@ -121,3 +121,15 @@ export const IconZoomOut = ({ className = base }: P) => (
     <circle cx="11" cy="11" r="7" /><path d="m20 20-3.5-3.5M8 11h6" />
   </svg>
 );
+
+export const IconUndo = ({ className = base }: P) => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className={className}>
+    <path d="M4 13a8 8 0 1 1 2.3 5.7" /><path d="M4 20v-7h7" />
+  </svg>
+);
+
+export const IconPen = ({ className = base }: P) => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className={className}>
+    <path d="M12 19l7-7-4-4-7 7-1 5z" /><path d="M15 8l1-1a2 2 0 1 1 3 3l-1 1" />
+  </svg>
+);
