@@ -216,6 +216,45 @@ The batch file is identical but carries `documents` (plural) instead. Note
 reconstructed rather than merely described. Pages record their rotation and,
 for scanned pages, which scanner produced them at what resolution.
 
+## Deploying
+
+The app is a zero-config static Next build, so it deploys to Vercel as-is.
+Easiest route, since the repo is already on GitHub:
+
+1. vercel.com/new -> import `AstroMC98/QuickPDF`
+2. Accept the detected settings and deploy
+
+That also wires up automatic deploys on every push and preview URLs per branch.
+There is nothing to configure: no server routes, no environment variables, no
+database.
+
+### Scanning from a deployed page
+
+**A hosted app cannot reach a USB scanner.** The scanner is plugged into a desk;
+the deployment runs in a datacentre. What works instead is the deployed page
+talking to the bridge on *the visitor's own machine*:
+
+```bash
+npm run scan-bridge -- --allow-origin https://your-deployment.vercel.app
+```
+
+The Scan panel prints that exact command, with the right origin already filled
+in, whenever it is served from anywhere other than localhost. You can also set
+`QUICKPDF_ALLOW_ORIGIN` instead of retyping the flag.
+
+Three things make this possible, and all three are already handled:
+
+- `http://localhost` counts as a trustworthy origin, so an **https** page is not
+  blocked from calling it as mixed content
+- Chrome's Private Network Access preflight is answered with
+  `Access-Control-Allow-Private-Network` (the browser may still ask the visitor
+  for permission the first time)
+- the bridge answers only origins on its allowlist, which is why the deployment
+  has to be named explicitly — otherwise any site you visited could start a scan
+
+Anyone without the bridge running still gets the full app; the Scan panel simply
+explains how to start it, and uploading works as normal.
+
 ## Templates
 
 A template deliberately stores **no image data**. It stores the *shape* of the job:
@@ -448,6 +487,19 @@ Annotation editing:
   ellipse, and zero on an un-annotated page
 - text exports as searchable text, not pixels: `/Helvetica 36 Tf` with the
   string `<415050524F56454420323320417567>` = "APPROVED 23 Aug"
+
+Deployed-origin scanning:
+
+- the production build served from a non-localhost origin reaches the bridge
+  successfully once that origin is allowed, confirming the CORS and Private
+  Network Access path
+- served from an origin that is *not* allowed, the panel shows the exact
+  `--allow-origin` command for its own origin. A refused origin is
+  indistinguishable from "not running" in the browser — the 403 carries no CORS
+  header, so the response cannot be read — which is why the panel offers the
+  command that covers both cases
+- with the scanner powered off, the bridge reports "no scanners" rather than
+  failing
 
 Metadata sidecars:
 

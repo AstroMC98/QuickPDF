@@ -185,18 +185,38 @@ export default function ScanPanel({ onPages, disabled }: Props) {
   }
 
   if (status === "offline") {
+    // A refused origin comes back as a bare network error — the 403 carries no
+    // CORS header, so the browser will not let us read it. We therefore cannot
+    // tell "blocked" from "not running", and instead show the command that
+    // covers both for wherever this page happens to be served from.
+    const origin = typeof window === "undefined" ? "" : window.location.origin;
+    const servedLocally = /^https?:\/\/(localhost|127\.0\.0\.1)(:|$)/.test(origin);
+    const command = servedLocally
+      ? "npm run scan-bridge"
+      : `npm run scan-bridge -- --allow-origin ${origin}`;
+
     return (
       <div className="space-y-2 text-sm">
         <p className="text-[var(--ink-soft)]">
-          No scan bridge running. Browsers cannot reach a scanner on their own, so QuickPDF needs
-          a small local helper.
+          No scan bridge reachable. Browsers have no scanner API, so QuickPDF talks to a small
+          helper running on the machine the scanner is plugged into.
         </p>
         <pre className="overflow-x-auto rounded-md bg-[var(--surface)] px-2 py-1.5 font-mono text-[11px]">
-          npm run scan-bridge
+          {command}
         </pre>
-        <p className="text-[11px] text-[var(--ink-soft)]">
-          Run that in this project, then press Retry. Expected at{" "}
-          <code className="font-mono">{BRIDGE_URL}</code>.
+        <p className="text-[11px] leading-snug text-[var(--ink-soft)]">
+          {servedLocally ? (
+            <>
+              Run that in the project, then press Retry. Expected at{" "}
+              <code className="font-mono">{BRIDGE_URL}</code>.
+            </>
+          ) : (
+            <>
+              Run that on your own machine from a clone of the project, then press Retry. The
+              bridge only answers origins you name, which is why this page has to be listed. Your
+              browser may also ask permission to reach a local network device.
+            </>
+          )}
         </p>
         <button
           type="button"

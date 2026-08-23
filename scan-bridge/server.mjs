@@ -35,15 +35,20 @@ const flag = (name, fallback) => {
 };
 
 const PORT = Number(flag("port", 7878));
-const EXTRA_ORIGINS = argv
-  .filter((a) => a.startsWith("--allow-origin"))
-  .map((a) => (a.includes("=") ? a.split("=")[1] : argv[argv.indexOf(a) + 1]))
+const EXTRA_ORIGINS = [
+  ...argv
+    .filter((a) => a.startsWith("--allow-origin"))
+    .map((a) => (a.includes("=") ? a.split("=")[1] : argv[argv.indexOf(a) + 1])),
+  // Same list, without retyping the flag every time.
+  ...(process.env.QUICKPDF_ALLOW_ORIGIN ?? "").split(","),
+]
+  .map((o) => o?.trim().replace(/\/+$/, ""))
   .filter(Boolean);
 
 /** Any localhost port is trusted; anything else must be opted into explicitly. */
 function isAllowedOrigin(origin) {
   if (!origin) return false;
-  if (EXTRA_ORIGINS.includes(origin)) return true;
+  if (EXTRA_ORIGINS.includes(origin.replace(/\/+$/, ""))) return true;
   try {
     const { hostname, protocol } = new URL(origin);
     return protocol === "http:" && (hostname === "localhost" || hostname === "127.0.0.1");
